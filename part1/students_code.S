@@ -31,6 +31,7 @@ inner_prod:
 
 	# Save callee-saved register that will be changed in inner_prod
     pushq %r12
+	pushq %r13
 
 	# Paramenters passed by the caller:
     # %rdi 	- matrixA base address
@@ -40,15 +41,16 @@ inner_prod:
 	# %r8 	- matrixA number of columns
 	# %r9 	- matrixB number of columns
 
-	xorq %rax, %rax				# rax = 0 (result)
-	xor %r10, %r10				# r10 = 0 (loopIndex)
+	xorq %r10, %r10				# r10 = 0 (loopIndex)
+	xorq %r13, %r13				# r13 = 0 (result)
 
 	# Loop over the row of matrix A and the column of matrix B
 	.inner_prod_loop:
-		cmpq %r8, %r10          # Compare loopIndex with matrix A number of columns
+		cmpq %r8, %r10          			# Compare loopIndex with matrix A number of columns
 		jge .inner_prod_loop_end      		# If loopIndex >=  matrix A number of columns, exit loop
 
 		# Caller save registers
+		pushq %rax
 		pushq %rsi				# matrixB base address
 		pushq %rcx 				# matrixB col index
 
@@ -63,10 +65,13 @@ inner_prod:
 		# Restore caller save registers
 		popq %rcx 				# matrixB col index
 		popq %rsi				# matrixB base address
+		popq %rax
 
 		# Caller save registers
+		pushq %rax
 		pushq %rsi				# matrixB base address
 		pushq %rdx				# matrixA row  index
+		pushq %rdi				# matrixA base address
 
 		# Get element from matrix B
 		movq %rsi, %rdi         # matrixB base address
@@ -77,18 +82,23 @@ inner_prod:
 		movl %eax, %r12d        # Store element in r12d
 
 		# Restore caller save register
+		popq %rdi				# matrixA base address
 		popq %rdx				# matrixA row  index
 		popq %rsi				# matrixB base address
+		popq %rax
 		
 		# Multiply elements and add to result
 		imul %r11d, %r12d       # r12d = r11d * r12d
-		addl %r12d, %eax        # eax += r12d
+		addl %r12d, %r13d       # r13d += r12d
 
 		incq %r10               # loopIndex++
-		jmp .inner_prod_loop     			# Repeat loop
+		jmp .inner_prod_loop    # Repeat loop
 
 	.inner_prod_loop_end:
+		movl %r13d, %eax        # eax = result
+
 		# Restore callee-saved register that changed in inner_prod
+		popq %r13
     	popq %r12
 
 		pop %rbp
