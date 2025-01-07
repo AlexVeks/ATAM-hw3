@@ -110,7 +110,7 @@ matrix_multiplication:
     ; stack[24] - p (modulu value)
 
 
-	; Save callee-saved registers that will be changed in matrix_multiplication
+	; Save callee-saved registers that can be changed in matrix_multiplication
 	pushq %rbx
 	pushq %r12
     pushq %r13
@@ -118,7 +118,7 @@ matrix_multiplication:
     pushq %r15
 
 	; Parametrs that passed in the stack
-	movq 16(%rbp), %r10  ; q (number of columns in mat_b)q
+	movq 16(%rbp), %r10  ; q (number of columns in mat_b)
     movq 24(%rbp), %r11  ; p (modulu value)
 
 	; Check if the matrices are of the correct size for multiplication
