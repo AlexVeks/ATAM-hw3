@@ -117,9 +117,12 @@ matrix_multiplication:
     # %rcx - m (number of rows in mat_a)
     # %r8  - n (number of columns in mat_a)
     # %r9  - w (number of rows in mat_b)
-    # stack[16] - q (number of columns in mat_b)
-    # stack[24] - p (modulu value)
+    # stack[12] - q (number of columns in mat_b)
+    # stack[16] - p (modulu value)
 
+	# Parametrs that passed in the stack
+	movq 16(%rbp), %r10  # q (number of columns in mat_b)
+    movq 24(%rbp), %r11  # p (modulu value)
 
 	# Save callee-saved registers that can be changed in matrix_multiplication
 	pushq %rbx
@@ -128,9 +131,7 @@ matrix_multiplication:
     pushq %r14
     pushq %r15
 
-	# Parametrs that passed in the stack
-	movq 16(%rbp), %r10  # q (number of columns in mat_b)
-    movq 24(%rbp), %r11  # p (modulu value)
+	
 
 	# Check if the matrices are of the correct size for multiplication
     cmpq %r8, %r9        # Compare n with w
