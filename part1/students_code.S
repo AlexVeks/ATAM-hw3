@@ -63,7 +63,7 @@ inner_prod:
 
 	# Loop over the row of matrix A and the column of matrix B
 	.inner_prod_loop:
-		cmpq %r8, %r10						# Compare loopIndex with matrix A number of columns
+		cmpq %r8, %r10							# Compare loopIndex with matrix A number of columns
 		jge .inner_prod_loop_end				# If loopIndex >=	matrix A number of columns, exit loop
 
 		# Caller save registers
@@ -78,12 +78,12 @@ inner_prod:
 		pushq %r11
 
 		# Get element from matrix A
-		movq %rdi, %rdi		 # matrixA base address
-		movq %r8, %rsi			# number of columns in matrixA
-		movq %rdx, %rdx		 # matrixA row	index
-		movq %r10, %rcx		 # Loop index runing over matrixA columns
+		movq %rdi, %rdi		 		# matrixA base address
+		movq %r8, %rsi				# number of columns in matrixA
+		movq %rdx, %rdx		 		# matrixA row	index
+		movq %r10, %rcx		 		# Loop index runing over matrixA columns
 		call get_element_from_matrix
-		movl %eax, %r12d		# Store element in r12d
+		movl %eax, %r12d			# Store element in r12d
 
 		# Restore caller save registers
 		popq %r11
@@ -108,10 +108,10 @@ inner_prod:
 		pushq %r11
 
 		# Get element from matrix B
-		movq %rsi, %rdi		 # matrixB base address
+		movq %rsi, %rdi		 	# matrixB base address
 		movq %r9, %rsi			# number of columns in matrixB
-		movq %r10, %rdx		 # Loop index runing over matrixB rows
-		movq %rcx, %rcx		 # matrixB col index
+		movq %r10, %rdx		 	# Loop index runing over matrixB rows
+		movq %rcx, %rcx			# matrixB col index
 		call get_element_from_matrix
 		movl %eax, %r13d		# Store element in r13d
 
