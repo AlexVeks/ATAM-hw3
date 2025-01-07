@@ -16,8 +16,8 @@ get_element_from_matrix:
 	movq %rdx,%rax 				# rax = row
 	imulq %rsi,%rax				# rax = row * n
 	addq %rcx,%rax				# rax = (row * n) + col
-	shlq $3, %rax           	# rax = (row * n + col) * 8
-	lea (%rdi,%rax) , %rax      # rax = matrix + (row * n + col) * 8
+	shlq $2, %rax           	# rax = (row * n + col) * 4
+	lea (%rdi,%rax) , %rax      # rax = matrix + (row * n + col) * 4
 	movl (%rax), %eax       	# eax = matrix[row * n + col]
 
 	popq %rbp
@@ -44,9 +44,9 @@ inner_prod:
 	xor %r10, %r10				# r10 = 0 (loopIndex)
 
 	# Loop over the row of matrix A and the column of matrix B
-	.loop:
+	.inner_prod_loop:
 		cmpq %r8, %r10          # Compare loopIndex with matrix A number of columns
-		jge .loop_end      		# If loopIndex >=  matrix A number of columns, exit loop
+		jge .inner_prod_loop_end      		# If loopIndex >=  matrix A number of columns, exit loop
 
 		# Caller save registers
 		pushq %rsi				# matrixB base address
@@ -85,9 +85,9 @@ inner_prod:
 		addl %r12d, %eax        # eax += r12d
 
 		incq %r10               # loopIndex++
-		jmp .loop     			# Repeat loop
+		jmp .inner_prod_loop     			# Repeat loop
 
-	.loop_end:
+	.inner_prod_loop_end:
 		# Restore callee-saved register that changed in inner_prod
     	popq %r12
 
@@ -124,22 +124,22 @@ matrix_multiplication:
 
 	# Check if the matrices are of the correct size for multiplication
     cmpq %r8, %r9        # Compare n with w
-    jne .error           # n != w: The multiplication not possible
+    jne .matrix_multiplication_error           # n != w: The multiplication not possible
 	
 
 	xorq %r12, %r12      # row index i = 0
     xorq %r13, %r13      # col index j = 0
 
 
-	.outer_loop:
+	.matrix_multiplication_outer_loop:
     	cmpq %rcx, %r12      # Compare i with m (number of rows in mat_a)
-    	jge .done            # If i >= m, exit outer loop
+    	jge .matrix_multiplication_done            # If i >= m, exit outer loop
 
     	xorq %r13, %r13      # Reset col index j = 0
 
-	.inner_loop:
+	.matrix_multiplication_inner_loop:
     	cmpq %r10, %r13      # Compare j with q (number of columns in mat_b)
-    	jge .next_row        # If j >= q, go to next row
+    	jge .matrix_multiplication_next_row        # If j >= q, go to next row
 
 		# Save caller-saved registers before calling inner_prod
 		pushq %rdi
@@ -205,14 +205,14 @@ matrix_multiplication:
 
 		# Increment matrix B column index
     	incq %r13            # j++
-    	jmp .inner_loop
+    	jmp .matrix_multiplication_inner_loop
 
-	.next_row:
+	.matrix_multiplication_next_row:
 		# Increment matrix A row index
     	incq %r12            # i++
-    	jmp .outer_loop
+    	jmp .matrix_multiplication_outer_loop
 
-	.done:
+	.matrix_multiplication_done:
     	# Restore callee-saved registers
     	popq %r15
     	popq %r14
@@ -225,7 +225,7 @@ matrix_multiplication:
     	ret					# Result returned in %eax
 
 
-	.error:
+	.matrix_multiplication_error:
     	# Restore callee-saved registers
     	popq %r15
     	popq %r14
