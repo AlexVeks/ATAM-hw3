@@ -12,6 +12,13 @@ get_element_from_matrix:
     # %rdx - row index
     # %rcx - column index
 
+	# Save callee-saved registers
+    pushq %rbx
+	pushq %r12
+    pushq %r13
+    pushq %r14
+    pushq %r15
+
 
 	movq %rdx,%rax 				# rax = row
 	imulq %rsi,%rax				# rax = row * n
@@ -19,6 +26,13 @@ get_element_from_matrix:
 	shlq $2, %rax           	# rax = (row * n + col) * 4
 	lea (%rdi,%rax) , %rax      # rax = matrix + (row * n + col) * 4
 	movl (%rax), %eax       	# eax = matrix[row * n + col]
+
+	# Restore callee-saved registers
+	popq %r15
+	popq %r14
+	popq %r13
+	popq %r12
+	popq %rbx
 
 	popq %rbp
 	ret							# Result returned in %eax
@@ -29,9 +43,12 @@ inner_prod:
 	pushq %rbp
 	movq %rsp,%rbp
 
-	# Save callee-saved register that will be changed in inner_prod
-    pushq %r12
-	pushq %r13
+	# Save callee-saved registers
+    pushq %rbx
+	pushq %r12
+    pushq %r13
+    pushq %r14
+    pushq %r15
 
 	# Paramenters passed by the caller:
     # %rdi 	- matrixA base address
@@ -51,8 +68,14 @@ inner_prod:
 
 		# Caller save registers
 		pushq %rax
-		pushq %rsi				# matrixB base address
-		pushq %rcx 				# matrixB col index
+		pushq %rdi
+    	pushq %rsi
+    	pushq %rdx
+    	pushq %rcx
+    	pushq %r8
+    	pushq %r9
+		pushq %r10
+		pushq %r11
 
 		# Get element from matrix A
 		movq %rdi, %rdi         # matrixA base address
@@ -60,18 +83,29 @@ inner_prod:
 		movq %rdx, %rdx         # matrixA row  index
 		movq %r10, %rcx         # Loop index runing over matrixA columns
 		call get_element_from_matrix
-		movl %eax, %r11d        # Store element in r11d
+		movl %eax, %r12d        # Store element in r12d
 
 		# Restore caller save registers
-		popq %rcx 				# matrixB col index
-		popq %rsi				# matrixB base address
+		popq %r11
+		popq %r10
+		popq %r9
+		popq %r8
+		popq %rcx
+		popq %rdx
+		popq %rsi
+		popq %rdi
 		popq %rax
 
 		# Caller save registers
 		pushq %rax
-		pushq %rsi				# matrixB base address
-		pushq %rdx				# matrixA row  index
-		pushq %rdi				# matrixA base address
+		pushq %rdi
+    	pushq %rsi
+    	pushq %rdx
+    	pushq %rcx
+    	pushq %r8
+    	pushq %r9
+		pushq %r10
+		pushq %r11
 
 		# Get element from matrix B
 		movq %rsi, %rdi         # matrixB base address
@@ -79,29 +113,38 @@ inner_prod:
 		movq %r10, %rdx         # Loop index runing over matrixB rows
 		movq %rcx, %rcx         # matrixB col index
 		call get_element_from_matrix
-		movl %eax, %r12d        # Store element in r12d
+		movl %eax, %r13d        # Store element in r13d
 
 		# Restore caller save register
-		popq %rdi				# matrixA base address
-		popq %rdx				# matrixA row  index
-		popq %rsi				# matrixB base address
+		popq %r11
+		popq %r10
+		popq %r9
+		popq %r8
+		popq %rcx
+		popq %rdx
+		popq %rsi
+		popq %rdi
 		popq %rax
+
 		
 		# Multiply elements and add to result
-		imul %r11d, %r12d       # r12d = r11d * r12d
-		addl %r12d, %r13d       # r13d += r12d
+		imul %r12d, %r13d       # r12d = r11d * r12d
+		addl %r13d, %r14d       # r13d += r12d
 
 		incq %r10               # loopIndex++
 		jmp .inner_prod_loop    # Repeat loop
 
 	.inner_prod_loop_end:
-		movl %r13d, %eax        # eax = result
+		movl %r14d, %eax        # eax = result
 
-		# Restore callee-saved register that changed in inner_prod
+		# Restore callee-saved registers
+		popq %r15
+		popq %r14
 		popq %r13
     	popq %r12
+		popq %rbx
 
-		pop %rbp
+		popq %rbp
 		ret
 
 
@@ -124,7 +167,7 @@ matrix_multiplication:
 	movq 16(%rbp), %r10  # q (number of columns in mat_b)
     movq 24(%rbp), %r11  # p (modulu value)
 
-	# Save callee-saved registers that can be changed in matrix_multiplication
+	# Save callee-saved registers
 	pushq %rbx
 	pushq %r12
     pushq %r13
