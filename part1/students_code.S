@@ -12,15 +12,16 @@ get_element_from_matrix:
     # %rdx - row index
     # %rcx - column index
 
-	movq %rdx,%rax 			# rax = row
-	imulq %rsi,%rax			# rax = row * n
-	addq %rcx,%rax			# rax = (row * n) + col
-	shlq $2, %rax           # rax = (row * n + col) * 4 (Elements are 32 Bit)
-	addq %rdi, %rax         # rax = matrix + (row * n + col) * 4
-	movl (%rax), %eax       # eax = matrix[row * n + col]
+
+	movq %rdx,%rax 				# rax = row
+	imulq %rsi,%rax				# rax = row * n
+	addq %rcx,%rax				# rax = (row * n) + col
+	shlq $3, %rax           	# rax = (row * n + col) * 8
+	lea (%rdi,%rax) , %rax      # rax = matrix + (row * n + col) * 8
+	movl (%rax), %eax       	# eax = matrix[row * n + col]
 
 	popq %rbp
-	ret						# Result returned in %eax
+	ret							# Result returned in %eax
 
 
 
